@@ -1,3 +1,3 @@
-# barebone-flask-rest-api
+# eb-flaks
 
-https://camillovisini.com/article/barebone-flask-rest-api-on-aws-elastic-beanstalk/
+Repository for study purpose of autoscaling on Amazon Elastic Beanstalk
