@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE
 import os
+import sys
 
 RUNNING_INSTANCES = 'Running instances: '
 APP_NAME = 'Application name: '
@@ -21,10 +22,15 @@ def get_intances(output):
     runningIstances = aux[1].split('\\r\\n')
     return int(runningIstances[0])
 
+def main():
+    os.system(r".\init.bat " + sys.argv[1] + " " + sys.argv[2] + " " + sys.argv[3] )
 
-p = Popen(['.\status.bat', 'arg1'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-output = p.communicate()
+    p = Popen(['.\status.bat', 'arg1'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output = p.communicate()
 
-instances = get_intances(output) + 1
+    instances = get_intances(output) + 1
 
-os.system(r".\scale.bat " + str(instances) + " "+get_environment_name(output) )
+    os.system(r".\scale.bat " + str(instances) + " "+get_environment_name(output) )
+
+if __name__ == "__main__":
+    main()
