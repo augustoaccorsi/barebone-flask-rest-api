@@ -2,7 +2,7 @@
 
 Repository for study purpose of autoscaling on Amazon Elastic Beanstalk
 
-# Autosacling
+# Autoscaling
 
 ``py .\autoscaling.py application-name environment-name plataform-version region-name``
 
