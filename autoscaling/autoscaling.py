@@ -1,9 +1,24 @@
 from subprocess import Popen, PIPE
 import os
 import sys
+import yaml
 
 INSTANCE_ID = "InstanceId\": \""
 CPU = "Idle\": "
+
+
+def get_config_info():
+    yaml_file = open("config.yaml")
+    
+    config_file = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+    envName = config_file.get('branch-defaults').get('default').get('environment')
+    appName = config_file.get('global').get('application_name')
+    plataform = config_file.get('global').get('default_platform')
+    region = config_file.get('global').get('default_region')
+
+    return [envName, plataform.replace(" ", "-").lower() , region, appName]
+
 
 def get_instances_ids(output):
     aux = str(output).split(INSTANCE_ID)
@@ -38,16 +53,16 @@ def scale(cpu_idle, instances, envName, appName):
             scaleDown = True
 
     if scaleUp:
-        os.system(r".\scale.bat " + str(len(instances) + 1) + " "+ envName)
+        os.system(r".\bat-files\scale.bat " + str(len(instances) + 1) + " "+ envName)
         scaleUp = False
     
     if scaleDown:
         if len(cpu_idle) > 1:
-            os.system(r".\scale.bat " + str(len(instances) - 1) + " "+ envName)
+            os.system(r".\bat-files\scale.bat " + str(len(instances) - 1) + " "+ envName)
         scaleDown = False
     
     if scaleDown == False and scaleUp == False:
-        print("Aplication "+ appName +" of environment"+ envName +" should not be scaled, CPU's are working with the following capacity:")
+        print("Aplication "+ appName +" of environment "+ envName +" should not be scaled, CPU's are working with the following capacity:")
         for i in range(len(cpu_idle)):
             print("Instace 1:")
             print("   Instance ID: "+ str(instances[i]))
@@ -56,14 +71,16 @@ def scale(cpu_idle, instances, envName, appName):
 
 def main():
 
-    appName = sys.argv[1]
-    envName = sys.argv[2]
-    plataform = sys.argv[3]
-    region = sys.argv[4]
+    config_info = get_config_info()
 
-    os.system(r".\init.bat " + plataform + " " + envName + " " + region )
+    envName = config_info[0]
+    plataform = config_info[1]
+    region = config_info[2]
+    appName = config_info[3]
 
-    p = Popen(['.\health.bat', envName, region], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    os.system(r".\bat-files\init.bat " + plataform + " " + envName + " " + region )
+
+    p = Popen(['bat-files\health.bat', envName, region], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output = p.communicate()[0]
 
     instances = get_instances_ids(output.decode('utf-8'))

@@ -1,0 +1,1 @@
+aws elasticbeanstalk describe-instances-health --environment-name %1 --region %2  --attribute-names System
