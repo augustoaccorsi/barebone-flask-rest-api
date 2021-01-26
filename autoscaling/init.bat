@@ -1,1 +1,0 @@
-eb init -p %1 %2 --region %3
