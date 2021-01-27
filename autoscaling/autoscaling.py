@@ -45,13 +45,13 @@ def get_cpu(output):
             count +=1
     return cpu_idle
 
-def print_output(appName, envName, instances, cpu_idle):
+def print_output(appName, envName, instances, cpu_idle, scaleDown, scaleUp):
     if scaleDown == False and scaleUp == False:
         print("Aplication "+ appName +" of environment "+ envName +" should not be scaled, CPU's are working with the following capacity:")
     else:
          print("Aplication "+ appName +" of environment "+ envName +" scaled to "+ str(len(instances)) +" instance(s), CPU's are working with the following capacity:")
     for i in range(len(cpu_idle)):
-        print("Instace "+str(i)+":")
+        print("Instace "+str(i+1)+":")
         print("   Instance ID: "+ str(instances[i]))
         print("   CPU Usage: "+ str(100 - cpu_idle[i]))
         print("   CPU Idle: "+ str(cpu_idle[i]))
@@ -61,19 +61,31 @@ def scale(envName, appName, region):
     scaleDown = False
     threasholdUp = 30
     threasholDown = 70
+    countUp = 0
+    countDown = 0
 
     output = get_health_output(envName, region)
     instances = get_instances_ids(output)
     cpu_idle = get_cpu(output)
 
-    count = 0
     for i in range(len(cpu_idle)):
         if cpu_idle[i] <= threasholdUp:
             scaleUp = True
-            count += 1
+            countUp += 1
         if cpu_idle[i] >= threasholDown:
             scaleDown = True
-            count += 1
+            countDown += 1
+
+    count = countUp - countDown
+
+    if countUp == 0 and (countDown == len(instances)):
+        count = 1
+    
+    if (len(instances) - count) == 0:
+        count = 1
+    
+    if (len(instances) - count) < 0:
+        count = count * -1
 
     if scaleUp:
         os.system(r".\bat-files\scale.bat " + str(len(instances) + count) + " "+ envName)
@@ -83,14 +95,14 @@ def scale(envName, appName, region):
         if len(cpu_idle) > 1:
             if count == len(instances):
                 count =- 1
-            os.system(r".\bat-files\scale.bat " + str(len(instances) - count) + " "+ envName)
+            os.system(r".\bat-files\scale.bat " + str(count) + " "+ envName)
         scaleDown = False
 
     output = get_health_output(envName, region)
     instances = get_instances_ids(output)
     cpu_idle = get_cpu(output)
     
-
+    print_output(appName, envName, instances, cpu_idle, scaleDown, scaleUp)
 
 def main():
     config_info = get_config_info()
